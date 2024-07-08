@@ -1,0 +1,497 @@
+---
+title: "Cyclistic Capstone Project using R"
+author: "JT Nickel"
+date: "2024-05-08"
+output:
+  cleanrmd::html_document_clean:  
+    theme: sakura-vader
+    toc: true
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### How does a bike-share navigate speedy success?  
+
+This case study serves as a final project in the Google Data Analytics Professional Certificate offered through Coursera.
+The project will be conducted entirely in R Studio as it is able to accommodate the amount of data being utilized as well as create meaningful visualizations.  
+
+#### Scenario
+
+You are a junior data analyst working on the marketing analyst team at Cyclistic, a bike-share
+company in Chicago. The director of marketing believes the company’s future success
+depends on maximizing the number of annual memberships. Therefore, your team wants to
+understand how casual riders and annual members use Cyclistic bikes differently. From these
+insights, your team will design a new marketing strategy to convert casual riders into annual
+members. But first, Cyclistic executives must approve your recommendations, so they must be
+backed up with compelling data insights and professional data visualizations. 
+
+In this scenario I will be using the data analysis process outlined in the Google Data Analytics certification which is as follows:  
+  
+- **Ask**  
+- **Prepare**  
+- **Process**  
+- **Analyze**  
+- **Share**  
+- **Act**  
+
+#### About the Company
+In 2016, Cyclistic launched a successful bike-share offering. Since then, the program has grown
+to a fleet of 5,824 bicycles that are geotracked and locked into a network of 692 stations
+across Chicago. The bikes can be unlocked from one station and returned to any other station
+in the system anytime.  
+
+Until now, Cyclistic’s marketing strategy relied on building general awareness and appealing to
+broad consumer segments. One approach that helped make these things possible was the
+flexibility of its pricing plans: single-ride passes, full-day passes, and annual memberships.
+Customers who purchase single-ride or full-day passes are referred to as casual riders.
+Customers who purchase annual memberships are Cyclistic members.  
+
+Cyclistic’s finance analysts have concluded that annual members are much more profitable
+than casual riders. Although the pricing flexibility helps Cyclistic attract more customers,
+Moreno believes that maximizing the number of annual members will be key to future growth.
+Rather than creating a marketing campaign that targets all-new customers, Moreno believes
+there is a solid opportunity to convert casual riders into members. She notes that casual riders
+are already aware of the Cyclistic program and have chosen Cyclistic for their mobility needs.  
+
+Moreno has set a clear goal: Design marketing strategies aimed at converting casual riders into
+annual members. In order to do that, however, the team needs to better understand how
+annual members and casual riders differ, why casual riders would buy a membership, and how
+digital media could affect their marketing tactics. Moreno and her team are interested in
+analyzing the Cyclistic historical bike trip data to identify trends.  
+
+#### Stakeholders in the Scenario
+
+**Cyclistic:** A bike-share program that features more than 5,800 bicycles and 600
+docking stations. Cyclistic sets itself apart by also offering reclining bikes, hand
+tricycles, and cargo bikes, making bike-share more inclusive to people with disabilities
+and riders who can’t use a standard two-wheeled bike. The majority of riders opt for
+traditional bikes; about 8% of riders use the assistive options. Cyclistic users are more
+likely to ride for leisure, but about 30% use the bikes to commute to work each day.  
+
+**Lily Moreno:** The director of marketing and your manager. Moreno is responsible for
+the development of campaigns and initiatives to promote the bike-share program.
+These may include email, social media, and other channels.  
+
+**Cyclistic marketing analytics team:** A team of data analysts who are responsible for
+collecting, analyzing, and reporting data that helps guide Cyclistic marketing strategy.
+You joined this team six months ago and have been busy learning about Cyclistic’s
+mission and business goals—as well as how you, as a junior data analyst, can help
+Cyclistic achieve them.  
+
+**Cyclistic executive team:** The notoriously detail-oriented executive team will decide
+whether to approve the recommended marketing program.  
+
+# Ask  
+
+Three questions will guide the future marketing program:  
+
+1. How do annual members and casual riders use Cyclistic bikes differently?
+2. Why would casual riders buy Cyclistic annual memberships?
+3. How can Cyclistic use digital media to influence casual riders to become members?  
+
+Moreno has assigned you the first question to answer: How do annual members and casual
+riders use Cyclistic bikes differently?
+
+# Prepare  
+
+The data used for this analysis is publicly available under this [license](https://divvybikes.com/data-license-agreement) and was downloaded from the following [repository](https://divvy-tripdata.s3.amazonaws.com/index.html).  
+
+I will be analyzing all data from 2023 consisting of 12 .csv files, one for each month of the year. I chose the most recent full calendar year for analysis because I want to look at the most recent ride trends. Since the company has provided us with many years worth of ride data in their repository (which is updated monthly), this data is highly credible and suited to answer the questions we've set out to answer.
+
+All .csv files were downloaded and stored locally on my personal device for analysis in R Studio but have been uploaded to Kaggle as well.
+
+To start our analysis, we'll want to load the following packages:  
+```{r}
+#loading packages for analysis
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(janitor)
+library(scales)
+```
+Next, we'll import our 12 months of data from 2023 from their local .csv files:
+```{r}
+# importing data from 2023
+setwd("~/Data Analysis/Cyclistic Case Study/Data/202004-202403_monthly_trip_data")
+jan23 <- read_csv("202301-divvy-tripdata.csv")
+feb23 <- read_csv("202302-divvy-tripdata.csv")
+mar23 <- read_csv("202303-divvy-tripdata.csv")
+apr23 <- read_csv("202304-divvy-tripdata.csv")
+may23 <- read_csv("202305-divvy-tripdata.csv")
+jun23 <- read_csv("202306-divvy-tripdata.csv")
+jul23 <- read_csv("202307-divvy-tripdata.csv")
+aug23 <- read_csv("202308-divvy-tripdata.csv")
+sep23 <- read_csv("202309-divvy-tripdata.csv")
+oct23 <- read_csv("202310-divvy-tripdata.csv")
+nov23 <- read_csv("202311-divvy-tripdata.csv")
+dec23 <- read_csv("202312-divvy-tripdata.csv")
+```
+Now these 12 data frames can be combined into a single data frame for analysis but we'll want to inspect the structure and naming conventions of each frame first, to ensure they are consistent across all our data frames.
+```{r}
+# checking column names
+colnames(jan23)
+colnames(feb23)
+colnames(mar23)
+colnames(apr23)
+colnames(may23)
+colnames(jun23)
+colnames(jul23)
+colnames(aug23)
+colnames(sep23)
+colnames(oct23)
+colnames(nov23)
+colnames(dec23)
+```
+All sheets have the same number of columns with consistent naming conventions throughout. We'll also want to verify that they are structured similarly with consistent formatting.
+```{r}
+# inspect that the columns in each data frame are consistent in structure with one another
+str(jan23)
+str(feb23)
+str(mar23)
+str(apr23)
+str(may23)
+str(jun23)
+str(jul23)
+str(aug23)
+str(sep23)
+str(oct23)
+str(nov23)
+str(dec23)
+```
+After a quick inspection, all columns across our data frames are formatted consistently and we are ready to combine all 12 data frames into a single data frame for analysis.
+```{r}
+# combining all 12 months of trip data into a single data frame
+all_rides2023 <- rbind(jan23, feb23, mar23, apr23, may23, jun23, jul23, aug23, sep23, oct23, nov23, dec23)
+```
+Inspect the new frame to confirm there were no issues combining the data frames.
+```{r}
+# inspect new frame
+str(all_rides2023)
+summary(all_rides2023)
+```
+# Process  
+
+The next step is to clean the data. The summary results show that there are some NA values in the columns that are numerical, notably the latitude and longitude columns. But, NAs are not displayed for non-numeric data so we'll want to inspect all of the columns for NA values. The following code chunks will:  
+
+- clean and consistently format column names  
+- sum the number of NA values in each column  
+- show duplicate rows in our data frame
+- show duplicate ride ID values
+```{r}
+clean_names(all_rides2023) # tidy up column names consistently
+colSums(is.na(all_rides2023)) # displays a count of NA's in each column
+get_dupes(all_rides2023) # checks for duplicate rows in the dataset
+get_dupes(all_rides2023, ride_id) # check that all ride IDs values are unique
+```
+The results show that:  
+
+- the column names are consistent
+- no duplicate rows are in the data frame
+- the ride ID column has no duplicate values  
+
+Additionally, we now have a count of the NA values within each column.  
+
+Below we will add columns that contain the ride length, day of the week the ride occurred on, and month the ride occurred in to the data frame for aggregation and visualization later on. 
+```{r}
+all_rides2023 <- mutate(all_rides2023, ride_len = difftime(all_rides2023$ended_at, all_rides2023$started_at)) # adds a column calculating ride length in seconds
+
+all_rides2023 <- mutate(all_rides2023, day_of_week = weekdays(as.Date(all_rides2023$started_at))) # adds a column listing weekdays
+
+all_rides2023 <- mutate(all_rides2023, month = format(as.Date(started_at), "%B")) # adds a column listing the month
+```
+
+Next, we'll want to sort and inspect our ride length column to see if any rides are outliers.
+```{r}
+arrange(all_rides2023, ride_len) # sort by ride length
+mean(all_rides2023$ride_len) # average ride length
+min(all_rides2023$ride_len) #min ride length
+max(all_rides2023$ride_len) # max ride length
+```
+A quick check of the min and max values of the new column reveals, we have multiple trips where the end time is before the start time. This results in a negative ride length. Additionally, the longest ride in the data is over 68 days long. We will address the outliers in this column next. For this analysis we will assume any rides under 2 minutes are irrelevant.
+```{r}
+rides23clean <- filter(all_rides2023, all_rides2023$ride_len > 119) #create new data frame consisting of only rides 2 minutes (120 seconds) or greater
+min(rides23clean$ride_len) # confirms the new minimum ride length is now 2 minutes (120 seconds)
+```
+Now we'll determine the outliers still remaining. The following code will determine our quartiles and IQR for calculating the outliers remaining using the 1.5 IQR rule.
+```{r}
+quantile(rides23clean$ride_len, 0.25)  #Q1
+IQR(rides23clean$ride_len)             # for checking that Q3-Q1 is accurate for our outlier calculation
+quantile(rides23clean$ride_len, 0.75)  #Q3
+quantile(rides23clean$ride_len, 0.75) + 1.5*IQR(rides23clean$ride_len) # upper limit of acceptable range
+```
+In this case, the 1.5 IQR rule suggests trimming all rows with a ride length greater than 2087.5 seconds, or about 35 minutes. Removing all values above 35 minutes would remove over 7% of the dataset. As there are likely legitimate rides longer than 35 minutes, I will not be removing the full 7% of rides. Instead, I chose to remove all rides above 2 hours as these make up less than 0.5% of the dataset, so I am less concerned about compromising the data removing that amount.
+```{r}
+rides23clean <- filter(rides23clean, rides23clean$ride_len <= 7200) #remove all rides greater than 2 hours
+max(rides23clean$ride_len) # confirms the new maximum ride length is now 2 hours (7200 seconds)
+```
+Now we have a clean, reliable data frame for our analysis.  
+
+# Analyze
+
+First, let's look at how many rides each group took in 2023.
+```{r}
+# creates bar chart of total rides by user type
+  ggplot(rides23clean, aes(factor(member_casual), fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "User Type",  y = "Total Rides", title = "Member vs Casual Rides 2023", fill = "") +
+  theme_bw() +
+    scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# provides the total # and % of rides by user type
+rides23clean %>%
+  group_by(member_casual) %>% 
+  summarize(ride_count = length(ride_id), ride_percentage = round((length(ride_id) / nrow(rides23clean)) * 100,2))
+```
+The tibble shows roughly 64% of all rides in 2023 were by annual members and 36% by casual users. Now, let's see what days of the week are most popular among each group.
+```{r}
+# assigns order for properly displaying the weekdays during visualization
+rides23clean$day_of_week <- ordered(rides23clean$day_of_week, 
+                                    levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+# tibble of rides per day by user type
+rides23clean %>%
+  group_by(day_of_week, member_casual) %>%
+  summarize(count = n()) %>%
+  pivot_wider(names_from = member_casual, values_from = count)
+```
+This tibble shows the number of rides per day of the week for each group and you can immediately see that members have a higher number of rides every day of the week. We can likely make more observations by visualizing this data.
+```{r}
+# creates bar chart of daily rides by day of the week by user type
+ggplot(rides23clean, aes(x = day_of_week, fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "Day of Week",  y = "Total Rides", title = "Member vs Casual Rides per Day 2023", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+```
+From this bar chart we see that annual members take most of their rides on weekdays while casual riders use the service more often on Fridays and weekends. Next, we'll investigate the average ride length of both groups on each day of the week during 2023.
+```{r}
+# average ride length by day by user type
+rides23clean %>%
+  group_by(day_of_week, member_casual) %>% 
+  summarize(avg_ride_len = round(mean(ride_len)), med_len = round(median(ride_len)))
+```
+The first thing to stand out is that casual users take longer rides on average than members every day of the week with the longest rides being on the weekends. We can make these insights easier to take in at a glance by converting the ride length to minutes and visualizing the results.
+```{r}
+# creates bar chart displaying average ride length, in minutes, for members and casuals for each day of the week
+rides23clean %>%  
+  group_by(member_casual, day_of_week) %>% 
+  summarise(average_ride_len = mean(ride_len)/60) %>%
+  ggplot(aes(x = day_of_week, y = average_ride_len, fill = member_casual)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(x = "Day of Week", y = "Average Ride Length (min)", title ="Member vs Casual Average Ride Length by Day 2023", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+```
+This chart clearly shows that the weekends are the most popular days for longer rides for both members and casual riders. In addition, we can see that casual riders go on longer bike rides, on average, than the members, every day of the week. 
+
+Now, let's take a look at how the number of rides varies from month to month between annual members and casual users.
+
+```{r}
+# assigns order for properly displaying the months during visualization
+rides23clean$month <- ordered(rides23clean$month, 
+                                    levels=c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
+
+# creates bar chart of total rides by month by usertype
+ggplot(rides23clean, aes(x = month, fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "Month",  y = "Total Rides", title = "Member vs Casual Rides per Month 2023", fill = "") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+```
+We can clearly see that the number of rides in both groups is at its lowest at the start and end of the year, with summer being peak season.
+
+To dig a bit deeper we can filter the months to look at seasonal trends within each group.
+
+For our purposes we will define the seasons as follows:  
+**- Winter**: December, January, February  
+**- Spring**: March, April, May  
+**- Summer**: June, July, August  
+**- Autumn**: September, October, November
+
+```{r}
+# creates bar chart displaying average # of rides per day by group during Winter
+rides23clean %>%
+  filter(month == "December" | month == "January" | month == "February") %>%
+  ggplot(aes(x = day_of_week, fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "Day of Week",  y = "Total Rides", title = "Member vs Casual Rides per Day during Winter", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# creates bar chart displaying average # of rides per day by group during Spring
+rides23clean %>%
+  filter(month == "March" | month == "April" | month == "May") %>%
+  ggplot(aes(x = day_of_week, fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "Day of Week",  y = "Total Rides", title = "Member vs Casual Rides per Day during Spring", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# creates bar chart displaying average # of rides per day by group during Summer
+rides23clean %>%
+  filter(month == "June" | month == "July" | month == "August") %>%
+  ggplot(aes(x = day_of_week, fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "Day of Week",  y = "Total Rides", title = "Member vs Casual Rides per Day during Summer", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# creates bar chart displaying average # of rides per day by group during Autumn
+rides23clean %>%
+  filter(month == "September" | month == "October" | month == "November") %>%
+  ggplot(aes(x = day_of_week, fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "Day of Week",  y = "Total Rides", title = "Member vs Casual Rides per Day during Autumn", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+```
+We can see that casual users go on far fewer rides during winter than any other season of the year. Members ride less often during winter than any other season of the year but they still make up the vast majority of the total rides during winter. The bar charts below show the total rides for each group by season which really highlights the differences between the two groups.
+```{r}
+# creates bar chart of daily rides by day by user type
+rides23clean %>%
+  filter(month == "December" | month == "January" | month == "February") %>%
+  ggplot(aes(factor(member_casual), fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "User Type",  y = "Total Rides", title = "Member vs Casual Rides Winter 2023", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+rides23clean %>%
+  filter(month == "March" | month == "April" | month == "May") %>%
+  ggplot(aes(factor(member_casual), fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "User Type",  y = "Total Rides", title = "Member vs Casual Rides Spring 2023", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+rides23clean %>%
+  filter(month == "June" | month == "July" | month == "August") %>%
+  ggplot(aes(factor(member_casual), fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "User Type",  y = "Total Rides", title = "Member vs Casual Rides Summer 2023", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+rides23clean %>%
+  filter(month == "September" | month == "October" | month == "November") %>%
+  ggplot(aes(factor(member_casual), fill = member_casual))+
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  labs(x = "User Type",  y = "Total Rides", title = "Member vs Casual Rides Autumn 2023", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+```
+I compared the average ride lengths by days of the week between the two groups during each season but the results did not prove very insightful. My main takeaway was that casual users on average take shorter rides on the weekends during the winter compared to the rest of the seasons which I did not find super surprising. Casual users also maintain the longest average ride each day for all 4 seasons. Those bar charts can be viewed below.
+```{r}
+# creates bar chart displaying average ride length from each group by day during Winter
+rides23clean %>%  
+  group_by(member_casual, day_of_week) %>% 
+  filter(month == "December" | month == "January" | month == "February") %>%
+  summarise(average_ride_len = mean(ride_len)/60) %>%
+  ggplot(aes(x = day_of_week, y = average_ride_len, fill = member_casual)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(x = "Day of Week", y = "Average Ride Time (min)", title ="Member vs Casual Average Ride Length by Day during Winter", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# creates bar chart displaying average ride length from each group by day during Spring
+rides23clean %>%  
+  group_by(member_casual, day_of_week) %>% 
+  filter(month == "March" | month == "April" | month == "May") %>%
+  summarise(average_ride_len = mean(ride_len)/60) %>%
+  ggplot(aes(x = day_of_week, y = average_ride_len, fill = member_casual)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(x = "Day of Week", y = "Average Ride Time (min)", title ="Member vs Casual Average Ride Length by Day during Spring", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# creates bar chart displaying average ride length from each group by day during Summer
+rides23clean %>%  
+  group_by(member_casual, day_of_week) %>% 
+  filter(month == "June" | month == "July" | month == "August") %>%
+  summarise(average_ride_len = mean(ride_len)/60) %>%
+  ggplot(aes(x = day_of_week, y = average_ride_len, fill = member_casual)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(x = "Day of Week", y = "Average Ride Time (min)", title ="Member vs Casual Average Ride Length by Day during Summer", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+
+# creates bar chart displaying average ride length from each group by day during Autumn
+rides23clean %>%  
+  group_by(member_casual, day_of_week) %>% 
+  filter(month == "September" | month == "October" | month == "November") %>%
+  summarise(average_ride_len = mean(ride_len)/60) %>%
+  ggplot(aes(x = day_of_week, y = average_ride_len, fill = member_casual)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  labs(x = "Day of Week", y = "Average Ride Time (min)", title ="Member vs Casual Average Ride Length by Day during Autumn", fill = "") +
+  theme_bw() +
+  scale_fill_manual(values = 
+                       c("member" = "#6E5EE6",
+                         "casual" = "#F3B340"))
+```
+
+# Share  
+
+The goal of this analysis was to help the marketing team develop a strategy with a goal of converting casual users to annual members by looking at how the two groups use the service differently.  
+
+Casual users make up just over ⅓ of all individual rides throughout 2023 (36%), but take longer rides on average than members on every single day of the week. Casual users take their longest rides on the weekends consistently throughout every season with the highest seasonal rides during the summer months.  
+
+Annual members have a very consistent number of rides and ride lengths on weekdays which can likely be partially correlated to the fact that many members commute to and from work everyday. Members also experience the highest seasonal rides during the summer, but the drop off during the winter is less severe than that of the casual riders.  
+
+When comparing the total number of rides between the two groups across seasons, the ratio of members to casuals is very similar in Spring and Autumn, but is sharply different when comparing Winter to Summer. During Winter months, member rides represent 77% of all rides. During the summer months the ratio is much closer as members only make up 58% of the total rides.  
+
+If we compare the number of rides casual riders took during Summer versus Winter, there are very close to 7 times as many rides taken during the Summer months versus Winter months. As I mentioned above, this drop off is much less severe for members as there are only 3.75 times as many rides during Summer than there are during Winter.  
+
+The combination of casual users having the longest bike rides all year long, highest usage during the weekends, and significant differences in the number of rides during Summer and Winter months suggests that casual riders primarily use Cyclistic’s services for leisure or recreational activities. Conversely, members take more rides during weekdays than on weekends. Their average ride length is shorter and more consistent in length than casual users throughout the week and they notice less of a drop off in usage from peak season than casual users do. All of these factors suggest that annual members use the services primarily for commuting.  
+
+# Act
+
+I find it difficult to come up with reasons why a casual user would want to commit to an annual membership simply because of their consistent usage patterns which suggest they primarily use the service for recreational purposes. One way to incentivize casual users to convert would be to introduce a referral program allowing them and/or a friend to start an annual membership at a discounted rate. Perhaps having someone join with them will also encourage both of these new members to ride more often.
+
+Alternatively, it may be a good idea to develop other membership types that cater more to the times casual users take the most rides. This membership type could be centered around unlimited rides on the weekends and limited rides during the week at a discounted price compared to the typical annual membership. Another option might be creating seasonal or bi-yearly membership options with discounted rates during the less popular seasons/stretches of the year.
+
+Finally, I would suggest increasing advertising around popular recreational areas that are accessible by Cyclistic’s services, especially during the summer months. If advertising on a digital medium, weekends should be prioritized as these are the two most popular times that casual users tend to use Cyclistic’s services.
